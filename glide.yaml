@@ -1,0 +1,4 @@
+package: mgo
+import:
+- package: github.com/go-kit/kit
+  version: v0.8.0
