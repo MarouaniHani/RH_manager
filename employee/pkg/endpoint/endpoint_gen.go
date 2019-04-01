@@ -10,18 +10,24 @@ import (
 // meant to be used as a helper struct, to collect all of the endpoints into a
 // single parameter.
 type Endpoints struct {
-	GetEndpoint    endpoint.Endpoint
-	AddEndpoint    endpoint.Endpoint
-	DeleteEndpoint endpoint.Endpoint
+	GetEndpoint                endpoint.Endpoint
+	AddEndpoint                endpoint.Endpoint
+	DeleteEndpoint             endpoint.Endpoint
+	GetByIDEndpoint            endpoint.Endpoint
+	GetByCreteriaEndpoint      endpoint.Endpoint
+	GetByMultiCriteriaEndpoint endpoint.Endpoint
 }
 
 // New returns a Endpoints struct that wraps the provided service, and wires in all of the
 // expected endpoint middlewares
 func New(s service.EmployeeService, mdw map[string][]endpoint.Middleware) Endpoints {
 	eps := Endpoints{
-		AddEndpoint:    MakeAddEndpoint(s),
-		DeleteEndpoint: MakeDeleteEndpoint(s),
-		GetEndpoint:    MakeGetEndpoint(s),
+		AddEndpoint:                MakeAddEndpoint(s),
+		DeleteEndpoint:             MakeDeleteEndpoint(s),
+		GetByCreteriaEndpoint:      MakeGetByCreteriaEndpoint(s),
+		GetByIDEndpoint:            MakeGetByIDEndpoint(s),
+		GetByMultiCriteriaEndpoint: MakeGetByMultiCriteriaEndpoint(s),
+		GetEndpoint:                MakeGetEndpoint(s),
 	}
 	for _, m := range mdw["Get"] {
 		eps.GetEndpoint = m(eps.GetEndpoint)
@@ -31,6 +37,15 @@ func New(s service.EmployeeService, mdw map[string][]endpoint.Middleware) Endpoi
 	}
 	for _, m := range mdw["Delete"] {
 		eps.DeleteEndpoint = m(eps.DeleteEndpoint)
+	}
+	for _, m := range mdw["GetByID"] {
+		eps.GetByIDEndpoint = m(eps.GetByIDEndpoint)
+	}
+	for _, m := range mdw["GetByCreteria"] {
+		eps.GetByCreteriaEndpoint = m(eps.GetByCreteriaEndpoint)
+	}
+	for _, m := range mdw["GetByMultiCriteria"] {
+		eps.GetByMultiCriteriaEndpoint = m(eps.GetByMultiCriteriaEndpoint)
 	}
 	return eps
 }

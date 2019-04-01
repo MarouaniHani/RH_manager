@@ -4,10 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	endpoint "mgo/employee/pkg/endpoint"
-	io "mgo/employee/pkg/io"
+	endpoint "mgo/department/pkg/endpoint"
+	"mgo/department/pkg/io"
 	http1 "net/http"
-	"strconv"
 
 	http "github.com/go-kit/kit/transport/http"
 	handlers "github.com/gorilla/handlers"
@@ -16,7 +15,7 @@ import (
 
 // makeGetHandler creates the handler logic
 func makeGetHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.ServerOption) {
-	m.Methods("GET").Path("/employees/").Handler(
+	m.Methods("GET").Path("/departments/").Handler(
 		handlers.CORS(
 			handlers.AllowedMethods([]string{"GET"}),
 			handlers.AllowedOrigins([]string{"*"}),
@@ -45,7 +44,7 @@ func encodeGetResponse(ctx context.Context, w http1.ResponseWriter, response int
 
 // makeAddHandler creates the handler logic
 func makeAddHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.ServerOption) {
-	m.Methods("POST", "OPTIONS").Path("/employees/").Handler(
+	m.Methods("POST", "OPTIONS").Path("/departments/").Handler(
 		handlers.CORS(
 			handlers.AllowedOrigins([]string{"*"}),
 			handlers.AllowedHeaders([]string{"Content-Type", "Content-Length"}),
@@ -56,26 +55,9 @@ func makeAddHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.
 // decodeAddRequest is a transport/http.DecodeRequestFunc that decodes a
 // JSON-encoded request from the HTTP request body.
 func decodeAddRequest(_ context.Context, r *http1.Request) (interface{}, error) {
-	zip, _ := strconv.Atoi(r.FormValue("ZipCode"))
-	tel, _ := strconv.Atoi(r.FormValue("EmployeeNumTel"))
-	EmergencyTel, _ := strconv.Atoi(r.FormValue("EmergencyContactTel"))
-	salary, _ := strconv.ParseFloat(r.FormValue("EmployeeSalary"), 32)
-	iban, _ := strconv.Atoi(r.FormValue("EmployeeIban"))
-	bic, _ := strconv.Atoi(r.FormValue("EmployeeBic"))
 	req := endpoint.AddRequest{
-		io.Employee{
-			EmployeeName:         r.FormValue("EmployeeName"),
-			EmployeeEmail:        r.FormValue("EmployeeEmail"),
-			Address:              r.FormValue("Address"),
-			ZipCode:              zip,
-			EmployeeBirthDate:    r.FormValue("EmployeeBirthDate"),
-			EmployeeNumTel:       tel,
-			EmergencyContactName: r.FormValue("EmergencyContactName"),
-			EmergencyContactTel:  EmergencyTel,
-			EmployeeStartDate:    r.FormValue("EmployeeStartDate"),
-			EmployeeSalary:       salary,
-			EmployeeIban:         iban,
-			EmployeeBic:          bic,
+		io.Department{
+			DepartmentName: r.FormValue("DepartmentName"),
 		},
 	}
 	return req, nil
@@ -95,7 +77,7 @@ func encodeAddResponse(ctx context.Context, w http1.ResponseWriter, response int
 
 // makeDeleteHandler creates the handler logic
 func makeDeleteHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.ServerOption) {
-	m.Methods("DELETE", "OPTIONS").Path("/employees/{id}").Handler(
+	m.Methods("DELETE", "OPTIONS").Path("/departments/{id}").Handler(
 		handlers.CORS(
 			handlers.AllowedMethods([]string{"DELETE"}),
 			handlers.AllowedHeaders([]string{"Content-Type", "Content-Length"}),
@@ -129,34 +111,9 @@ func encodeDeleteResponse(ctx context.Context, w http1.ResponseWriter, response 
 	return
 }
 
-//ErrorEncoder ...
-func ErrorEncoder(_ context.Context, err error, w http1.ResponseWriter) {
-	w.WriteHeader(err2code(err))
-	json.NewEncoder(w).Encode(errorWrapper{Error: err.Error()})
-}
-
-//ErrorDecoder ...
-func ErrorDecoder(r *http1.Response) error {
-	var w errorWrapper
-	if err := json.NewDecoder(r.Body).Decode(&w); err != nil {
-		return err
-	}
-	return errors.New(w.Error)
-}
-
-// This is used to set the http status, see an example here :
-// https://github.com/go-kit/kit/blob/master/examples/addsvc/pkg/addtransport/http.go#L133
-func err2code(err error) int {
-	return http1.StatusInternalServerError
-}
-
-type errorWrapper struct {
-	Error string `json:"error"`
-}
-
 // makeGetByIDHandler creates the handler logic
 func makeGetByIDHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.ServerOption) {
-	m.Methods("GET", "OPTIONS").Path("/employees/{id}").Handler(
+	m.Methods("GET", "OPTIONS").Path("/departments/{id}").Handler(
 		handlers.CORS(
 			handlers.AllowedMethods([]string{"GET"}),
 			handlers.AllowedHeaders([]string{"Content-Type", "Content-Length"}),
@@ -189,70 +146,26 @@ func encodeGetByIDResponse(ctx context.Context, w http1.ResponseWriter, response
 	err = json.NewEncoder(w).Encode(response)
 	return
 }
-
-// makeGetByCreteriaHandler creates the handler logic
-func makeGetByCreteriaHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.ServerOption) {
-	m.Methods("GET").Path("/employees/{name}").Handler(
-		handlers.CORS(
-			handlers.AllowedMethods([]string{"GET"}),
-			handlers.AllowedHeaders([]string{"Content-Type", "Content-Length"}),
-			handlers.AllowedOrigins([]string{"*"}),
-		)(http.NewServer(endpoints.GetByCreteriaEndpoint, decodeGetByCreteriaRequest, encodeGetByCreteriaResponse, options...)))
+func ErrorEncoder(_ context.Context, err error, w http1.ResponseWriter) {
+	w.WriteHeader(err2code(err))
+	json.NewEncoder(w).Encode(errorWrapper{Error: err.Error()})
 }
 
-// decodeGetByCreteriaRequest is a transport/http.DecodeRequestFunc that decodes a
-// JSON-encoded request from the HTTP request body.
-func decodeGetByCreteriaRequest(_ context.Context, r *http1.Request) (interface{}, error) {
-
-	vars := mux.Vars(r)
-	name, ok := vars["name"]
-	if !ok {
-		return nil, errors.New("not a valid creteria")
+//ErrorDecoder...
+func ErrorDecoder(r *http1.Response) error {
+	var w errorWrapper
+	if err := json.NewDecoder(r.Body).Decode(&w); err != nil {
+		return err
 	}
-	req := endpoint.GetByCreteriaRequest{
-		Creteria: name,
-	}
-	return req, nil
+	return errors.New(w.Error)
 }
 
-// encodeGetByCreteriaResponse is a transport/http.EncodeResponseFunc that encodes
-// the response as JSON to the response writer
-func encodeGetByCreteriaResponse(ctx context.Context, w http1.ResponseWriter, response interface{}) (err error) {
-	if f, ok := response.(endpoint.Failure); ok && f.Failed() != nil {
-		ErrorEncoder(ctx, f.Failed(), w)
-		return nil
-	}
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	err = json.NewEncoder(w).Encode(response)
-	return
+// This is used to set the http status, see an example here :
+// https://github.com/go-kit/kit/blob/master/examples/addsvc/pkg/addtransport/http.go#L133
+func err2code(err error) int {
+	return http1.StatusInternalServerError
 }
 
-// makeGetByMultiCriteriaHandler creates the handler logic
-func makeGetByMultiCriteriaHandler(m *mux.Router, endpoints endpoint.Endpoints, options []http.ServerOption) {
-	m.Methods("GET", "OPTIONS").Path("/employees/criteria/").Handler(
-		handlers.CORS(handlers.AllowedMethods([]string{"GET"}),
-			handlers.AllowedHeaders([]string{"Content-Type", "Content-Length"}),
-			handlers.AllowedOrigins([]string{"*"}),
-		)(http.NewServer(endpoints.GetByMultiCriteriaEndpoint, decodeGetByMultiCriteriaRequest, encodeGetByMultiCriteriaResponse, options...)))
-}
-
-// decodeGetByMultiCriteriaRequest is a transport/http.DecodeRequestFunc that decodes a
-// JSON-encoded request from the HTTP request body.
-func decodeGetByMultiCriteriaRequest(_ context.Context, r *http1.Request) (interface{}, error) {
-	req := endpoint.GetByMultiCriteriaRequest{
-		UrlMap: r.URL.String(),
-	}
-	return req, nil
-}
-
-// encodeGetByMultiCriteriaResponse is a transport/http.EncodeResponseFunc that encodes
-// the response as JSON to the response writer
-func encodeGetByMultiCriteriaResponse(ctx context.Context, w http1.ResponseWriter, response interface{}) (err error) {
-	if f, ok := response.(endpoint.Failure); ok && f.Failed() != nil {
-		ErrorEncoder(ctx, f.Failed(), w)
-		return nil
-	}
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	err = json.NewEncoder(w).Encode(response)
-	return
+type errorWrapper struct {
+	Error string `json:"error"`
 }

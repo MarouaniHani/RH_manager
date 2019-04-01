@@ -121,3 +121,117 @@ func (en Endpoints) Delete(ctx context.Context, id string) (error error) {
 	}
 	return response.(DeleteResponse).Error
 }
+
+// GetByIDRequest collects the request parameters for the GetByID method.
+type GetByIDRequest struct {
+	Id string `json:"id"`
+}
+
+// GetByIDResponse collects the response parameters for the GetByID method.
+type GetByIDResponse struct {
+	E     io.Employee `json:"e"`
+	Error error       `json:"error"`
+}
+
+// MakeGetByIDEndpoint returns an endpoint that invokes GetByID on the service.
+func MakeGetByIDEndpoint(s service.EmployeeService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(GetByIDRequest)
+		e, error := s.GetByID(ctx, req.Id)
+		return GetByIDResponse{
+			E:     e,
+			Error: error,
+		}, nil
+	}
+}
+
+// Failed implements Failer.
+func (r GetByIDResponse) Failed() error {
+	return r.Error
+}
+
+// GetByID implements Service. Primarily useful in a client.
+func (en Endpoints) GetByID(ctx context.Context, id string) (e io.Employee, error error) {
+	request := GetByIDRequest{Id: id}
+	response, err := en.GetByIDEndpoint(ctx, request)
+	if err != nil {
+		return
+	}
+	return response.(GetByIDResponse).E, response.(GetByIDResponse).Error
+}
+
+// GetByCreteriaRequest collects the request parameters for the GetByCreteria method.
+type GetByCreteriaRequest struct {
+	Creteria string `json:"creteria"`
+}
+
+// GetByCreteriaResponse collects the response parameters for the GetByCreteria method.
+type GetByCreteriaResponse struct {
+	E     []io.Employee `json:"e"`
+	Error error         `json:"error"`
+}
+
+// MakeGetByCreteriaEndpoint returns an endpoint that invokes GetByCreteria on the service.
+func MakeGetByCreteriaEndpoint(s service.EmployeeService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(GetByCreteriaRequest)
+		e, error := s.GetByCreteria(ctx, req.Creteria)
+		return GetByCreteriaResponse{
+			E:     e,
+			Error: error,
+		}, nil
+	}
+}
+
+// Failed implements Failer.
+func (r GetByCreteriaResponse) Failed() error {
+	return r.Error
+}
+
+// GetByCreteria implements Service. Primarily useful in a client.
+func (en Endpoints) GetByCreteria(ctx context.Context, creteria string) (e []io.Employee, error error) {
+	request := GetByCreteriaRequest{Creteria: creteria}
+	response, err := en.GetByCreteriaEndpoint(ctx, request)
+	if err != nil {
+		return
+	}
+	return response.(GetByCreteriaResponse).E, response.(GetByCreteriaResponse).Error
+}
+
+// GetByMultiCriteriaRequest collects the request parameters for the GetByMultiCriteria method.
+type GetByMultiCriteriaRequest struct {
+	UrlMap string `json:"url_map"`
+}
+
+// GetByMultiCriteriaResponse collects the response parameters for the GetByMultiCriteria method.
+type GetByMultiCriteriaResponse struct {
+	E     []io.Employee `json:"e"`
+	Error error         `json:"error"`
+}
+
+// MakeGetByMultiCriteriaEndpoint returns an endpoint that invokes GetByMultiCriteria on the service.
+func MakeGetByMultiCriteriaEndpoint(s service.EmployeeService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(GetByMultiCriteriaRequest)
+		e, error := s.GetByMultiCriteria(ctx, req.UrlMap)
+		return GetByMultiCriteriaResponse{
+			E:     e,
+			Error: error,
+		}, nil
+	}
+}
+
+// Failed implements Failer.
+func (r GetByMultiCriteriaResponse) Failed() error {
+	return r.Error
+}
+
+// GetByMultiCriteria implements Service. Primarily useful in a client.
+func (en Endpoints) GetByMultiCriteria(ctx context.Context, urlMap string) (e []io.Employee, error error) {
+	request := GetByMultiCriteriaRequest{UrlMap: urlMap}
+	response, err := en.GetByMultiCriteriaEndpoint(ctx, request)
+	if err != nil {
+		return
+	}
+	return response.(GetByMultiCriteriaResponse).E, response.(GetByMultiCriteriaResponse).Error
+}

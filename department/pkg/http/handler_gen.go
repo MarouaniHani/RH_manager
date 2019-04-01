@@ -4,7 +4,7 @@ package http
 import (
 	http "github.com/go-kit/kit/transport/http"
 	mux "github.com/gorilla/mux"
-	endpoint "mgo/employee/pkg/endpoint"
+	endpoint "mgo/department/pkg/endpoint"
 	http1 "net/http"
 )
 
@@ -16,7 +16,5 @@ func NewHTTPHandler(endpoints endpoint.Endpoints, options map[string][]http.Serv
 	makeAddHandler(m, endpoints, options["Add"])
 	makeDeleteHandler(m, endpoints, options["Delete"])
 	makeGetByIDHandler(m, endpoints, options["GetByID"])
-	makeGetByCreteriaHandler(m, endpoints, options["GetByCreteria"])
-	makeGetByMultiCriteriaHandler(m, endpoints, options["GetByMultiCriteria"])
 	return m
 }

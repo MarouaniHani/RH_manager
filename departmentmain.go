@@ -1,17 +1,9 @@
-package service
+package mgo
 
+/*
 import (
 	"flag"
 	"fmt"
-	endpoint "mgo/employee/pkg/endpoint"
-	http "mgo/employee/pkg/http"
-	service "mgo/employee/pkg/service"
-	"net"
-	http1 "net/http"
-	"os"
-	"os/signal"
-	"syscall"
-
 	endpoint1 "github.com/go-kit/kit/endpoint"
 	log "github.com/go-kit/kit/log"
 	prometheus "github.com/go-kit/kit/metrics/prometheus"
@@ -21,8 +13,16 @@ import (
 	zipkingoopentracing "github.com/openzipkin/zipkin-go-opentracing"
 	prometheus1 "github.com/prometheus/client_golang/prometheus"
 	promhttp "github.com/prometheus/client_golang/prometheus/promhttp"
+	endpoint "mgo/department/pkg/endpoint"
+	http "mgo/department/pkg/http"
+	service "mgo/department/pkg/service"
+	"net"
+	http1 "net/http"
+	"os"
+	"os/signal"
 	appdash "sourcegraph.com/sourcegraph/appdash"
 	opentracing "sourcegraph.com/sourcegraph/appdash/opentracing"
+	"syscall"
 )
 
 var tracer opentracinggo.Tracer
@@ -30,7 +30,7 @@ var logger log.Logger
 
 // Define our flags. Your service probably won't need to bind listeners for
 // all* supported transports, but we do it here for demonstration purposes.
-var fs = flag.NewFlagSet("employee", flag.ExitOnError)
+var fs = flag.NewFlagSet("department", flag.ExitOnError)
 var debugAddr = fs.String("debug.addr", ":8080", "Debug and metrics listen address")
 var httpAddr = fs.String("http-addr", ":8081", "HTTP listen address")
 var grpcAddr = fs.String("grpc-addr", ":8082", "gRPC listen address")
@@ -60,7 +60,7 @@ func Run() {
 			os.Exit(1)
 		}
 		defer collector.Close()
-		recorder := zipkingoopentracing.NewRecorder(collector, false, "localhost:80", "employee")
+		recorder := zipkingoopentracing.NewRecorder(collector, false, "localhost:80", "department")
 		tracer, err = zipkingoopentracing.NewTracer(recorder)
 		if err != nil {
 			logger.Log("err", err)
@@ -118,7 +118,7 @@ func getEndpointMiddleware(logger log.Logger) (mw map[string][]endpoint1.Middlew
 		Help:      "Request duration in seconds.",
 		Name:      "request_duration_seconds",
 		Namespace: "example",
-		Subsystem: "employee",
+		Subsystem: "department",
 	}, []string{"method", "success"})
 	addDefaultEndpointMiddleware(logger, duration, mw)
 	// Add you endpoint middleware here
@@ -153,3 +153,49 @@ func initCancelInterrupt(g *group.Group) {
 		close(cancelInterrupt)
 	})
 }
+*/
+/* package service
+
+import (
+	endpoint1 "github.com/go-kit/kit/endpoint"
+	log "github.com/go-kit/kit/log"
+	prometheus "github.com/go-kit/kit/metrics/prometheus"
+	opentracing "github.com/go-kit/kit/tracing/opentracing"
+	http "github.com/go-kit/kit/transport/http"
+	group "github.com/oklog/oklog/pkg/group"
+	opentracinggo "github.com/opentracing/opentracing-go"
+	endpoint "mgo/department/pkg/endpoint"
+	http1 "mgo/department/pkg/http"
+	service "mgo/department/pkg/service"
+)
+
+func createService(endpoints endpoint.Endpoints) (g *group.Group) {
+	g = &group.Group{}
+	initHttpHandler(endpoints, g)
+	return g
+}
+func defaultHttpOptions(logger log.Logger, tracer opentracinggo.Tracer) map[string][]http.ServerOption {
+	options := map[string][]http.ServerOption{
+		"Add":     {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "Add", logger))},
+		"Delete":  {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "Delete", logger))},
+		"Get":     {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "Get", logger))},
+		"GetByID": {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "GetByID", logger))},
+	}
+	return options
+}
+func addDefaultEndpointMiddleware(logger log.Logger, duration *prometheus.Summary, mw map[string][]endpoint1.Middleware) {
+	mw["Get"] = []endpoint1.Middleware{endpoint.LoggingMiddleware(log.With(logger, "method", "Get")), endpoint.InstrumentingMiddleware(duration.With("method", "Get"))}
+	mw["Add"] = []endpoint1.Middleware{endpoint.LoggingMiddleware(log.With(logger, "method", "Add")), endpoint.InstrumentingMiddleware(duration.With("method", "Add"))}
+	mw["Delete"] = []endpoint1.Middleware{endpoint.LoggingMiddleware(log.With(logger, "method", "Delete")), endpoint.InstrumentingMiddleware(duration.With("method", "Delete"))}
+	mw["GetByID"] = []endpoint1.Middleware{endpoint.LoggingMiddleware(log.With(logger, "method", "GetByID")), endpoint.InstrumentingMiddleware(duration.With("method", "GetByID"))}
+}
+func addDefaultServiceMiddleware(logger log.Logger, mw []service.Middleware) []service.Middleware {
+	return append(mw, service.LoggingMiddleware(logger))
+}
+func addEndpointMiddlewareToAllMethods(mw map[string][]endpoint1.Middleware, m endpoint1.Middleware) {
+	methods := []string{"Get", "Add", "Delete", "GetByID"}
+	for _, v := range methods {
+		mw[v] = append(mw[v], m)
+	}
+}
+*/

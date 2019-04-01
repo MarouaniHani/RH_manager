@@ -9,9 +9,9 @@ import (
 	http "github.com/go-kit/kit/transport/http"
 	group "github.com/oklog/oklog/pkg/group"
 	opentracinggo "github.com/opentracing/opentracing-go"
-	endpoint "mgo/employee/pkg/endpoint"
-	http1 "mgo/employee/pkg/http"
-	service "mgo/employee/pkg/service"
+	endpoint "mgo/department/pkg/endpoint"
+	http1 "mgo/department/pkg/http"
+	service "mgo/department/pkg/service"
 )
 
 func createService(endpoints endpoint.Endpoints) (g *group.Group) {
@@ -21,12 +21,10 @@ func createService(endpoints endpoint.Endpoints) (g *group.Group) {
 }
 func defaultHttpOptions(logger log.Logger, tracer opentracinggo.Tracer) map[string][]http.ServerOption {
 	options := map[string][]http.ServerOption{
-		"Add":                {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "Add", logger))},
-		"Delete":             {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "Delete", logger))},
-		"Get":                {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "Get", logger))},
-		"GetByCreteria":      {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "GetByCreteria", logger))},
-		"GetByID":            {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "GetByID", logger))},
-		"GetByMultiCriteria": {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "GetByMultiCriteria", logger))},
+		"Add":     {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "Add", logger))},
+		"Delete":  {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "Delete", logger))},
+		"Get":     {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "Get", logger))},
+		"GetByID": {http.ServerErrorEncoder(http1.ErrorEncoder), http.ServerErrorLogger(logger), http.ServerBefore(opentracing.HTTPToContext(tracer, "GetByID", logger))},
 	}
 	return options
 }
@@ -35,14 +33,12 @@ func addDefaultEndpointMiddleware(logger log.Logger, duration *prometheus.Summar
 	mw["Add"] = []endpoint1.Middleware{endpoint.LoggingMiddleware(log.With(logger, "method", "Add")), endpoint.InstrumentingMiddleware(duration.With("method", "Add"))}
 	mw["Delete"] = []endpoint1.Middleware{endpoint.LoggingMiddleware(log.With(logger, "method", "Delete")), endpoint.InstrumentingMiddleware(duration.With("method", "Delete"))}
 	mw["GetByID"] = []endpoint1.Middleware{endpoint.LoggingMiddleware(log.With(logger, "method", "GetByID")), endpoint.InstrumentingMiddleware(duration.With("method", "GetByID"))}
-	mw["GetByCreteria"] = []endpoint1.Middleware{endpoint.LoggingMiddleware(log.With(logger, "method", "GetByCreteria")), endpoint.InstrumentingMiddleware(duration.With("method", "GetByCreteria"))}
-	mw["GetByMultiCriteria"] = []endpoint1.Middleware{endpoint.LoggingMiddleware(log.With(logger, "method", "GetByMultiCriteria")), endpoint.InstrumentingMiddleware(duration.With("method", "GetByMultiCriteria"))}
 }
 func addDefaultServiceMiddleware(logger log.Logger, mw []service.Middleware) []service.Middleware {
 	return append(mw, service.LoggingMiddleware(logger))
 }
 func addEndpointMiddlewareToAllMethods(mw map[string][]endpoint1.Middleware, m endpoint1.Middleware) {
-	methods := []string{"Get", "Add", "Delete", "GetByID", "GetByCreteria", "GetByMultiCriteria"}
+	methods := []string{"Get", "Add", "Delete", "GetByID"}
 	for _, v := range methods {
 		mw[v] = append(mw[v], m)
 	}

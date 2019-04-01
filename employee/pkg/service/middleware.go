@@ -42,3 +42,24 @@ func (l loggingMiddleware) Delete(ctx context.Context, id string) (error error) 
 	}()
 	return l.next.Delete(ctx, id)
 }
+
+func (l loggingMiddleware) GetByID(ctx context.Context, id string) (e io.Employee, error error) {
+	defer func() {
+		l.logger.Log("method", "GetByID", "id", id, "e", e, "error", error)
+	}()
+	return l.next.GetByID(ctx, id)
+}
+
+func (l loggingMiddleware) GetByCreteria(ctx context.Context, creteria string) (e []io.Employee, error error) {
+	defer func() {
+		l.logger.Log("method", "GetByCreteria", "creteria", creteria, "e", e, "error", error)
+	}()
+	return l.next.GetByCreteria(ctx, creteria)
+}
+
+func (l loggingMiddleware) GetByMultiCriteria(ctx context.Context, urlMap string) (e []io.Employee, error error) {
+	defer func() {
+		l.logger.Log("method", "GetByMultiCriteria", "urlMap", urlMap, "e", e, "error", error)
+	}()
+	return l.next.GetByMultiCriteria(ctx, urlMap)
+}

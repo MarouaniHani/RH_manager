@@ -3,15 +3,6 @@ package service
 import (
 	"flag"
 	"fmt"
-	endpoint "mgo/employee/pkg/endpoint"
-	http "mgo/employee/pkg/http"
-	service "mgo/employee/pkg/service"
-	"net"
-	http1 "net/http"
-	"os"
-	"os/signal"
-	"syscall"
-
 	endpoint1 "github.com/go-kit/kit/endpoint"
 	log "github.com/go-kit/kit/log"
 	prometheus "github.com/go-kit/kit/metrics/prometheus"
@@ -21,8 +12,16 @@ import (
 	zipkingoopentracing "github.com/openzipkin/zipkin-go-opentracing"
 	prometheus1 "github.com/prometheus/client_golang/prometheus"
 	promhttp "github.com/prometheus/client_golang/prometheus/promhttp"
+	endpoint "mgo/department/pkg/endpoint"
+	http "mgo/department/pkg/http"
+	service "mgo/department/pkg/service"
+	"net"
+	http1 "net/http"
+	"os"
+	"os/signal"
 	appdash "sourcegraph.com/sourcegraph/appdash"
 	opentracing "sourcegraph.com/sourcegraph/appdash/opentracing"
+	"syscall"
 )
 
 var tracer opentracinggo.Tracer
@@ -30,7 +29,7 @@ var logger log.Logger
 
 // Define our flags. Your service probably won't need to bind listeners for
 // all* supported transports, but we do it here for demonstration purposes.
-var fs = flag.NewFlagSet("employee", flag.ExitOnError)
+var fs = flag.NewFlagSet("department", flag.ExitOnError)
 var debugAddr = fs.String("debug.addr", ":8080", "Debug and metrics listen address")
 var httpAddr = fs.String("http-addr", ":8081", "HTTP listen address")
 var grpcAddr = fs.String("grpc-addr", ":8082", "gRPC listen address")
@@ -60,7 +59,7 @@ func Run() {
 			os.Exit(1)
 		}
 		defer collector.Close()
-		recorder := zipkingoopentracing.NewRecorder(collector, false, "localhost:80", "employee")
+		recorder := zipkingoopentracing.NewRecorder(collector, false, "localhost:80", "department")
 		tracer, err = zipkingoopentracing.NewTracer(recorder)
 		if err != nil {
 			logger.Log("err", err)
@@ -118,7 +117,7 @@ func getEndpointMiddleware(logger log.Logger) (mw map[string][]endpoint1.Middlew
 		Help:      "Request duration in seconds.",
 		Name:      "request_duration_seconds",
 		Namespace: "example",
-		Subsystem: "employee",
+		Subsystem: "department",
 	}, []string{"method", "success"})
 	addDefaultEndpointMiddleware(logger, duration, mw)
 	// Add you endpoint middleware here
